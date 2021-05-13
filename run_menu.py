@@ -4,6 +4,7 @@ from tkinter import ttk
 import re
 import helpers
 from split import Split
+import os
 
 class Run_settings ():
     def __init__ (self, parent):
@@ -327,10 +328,10 @@ class Run_settings ():
         val_s = (splits_frame.register(valid_split), '%P', '%W')
         val_b = (splits_frame.register(valid_best), '%P', '%W')
     
-        self._run_menu._up = PhotoImage(file = 'images/up.png')
-        self._run_menu._down = PhotoImage(file = 'images/down.png')
-        self._run_menu._x = PhotoImage(file = 'images/x.png')
-        self._run_menu._plus = PhotoImage(file = 'images/plus.png')
+        self._run_menu._up = PhotoImage(file = os.path.join('images', 'up.png'))
+        self._run_menu._down = PhotoImage(file = os.path.join('images', 'down.png'))
+        self._run_menu._x = PhotoImage(file = os.path.join('images', 'x.png'))
+        self._run_menu._plus = PhotoImage(file = os.path.join('images', 'plus.png'))
         
         def swp (index, offset):
             # offset is -1 for swap above
