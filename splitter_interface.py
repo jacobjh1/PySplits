@@ -38,6 +38,7 @@ class SplitterInterface:
                 # ban hotkey actions if a menu is up, simplest just to do a wholesale ban
                 # a second option would be to only ban actions if _timer.is_on() and the menus are open
                 #     but that would also have some nuance that I don't really care about dealing with
+                # a third option is to add some more flags for menus, and only ban keys for the Run (splits) menu
                 if self._menu._layer1 or self._menu._layerbind:
                     self._va._root.bell()
                     return 

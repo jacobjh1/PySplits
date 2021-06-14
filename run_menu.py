@@ -28,12 +28,16 @@ class Run_settings ():
             #print('scrollbar', scrollbar.winfo_width())
             #print('splits', splits_canvas.winfo_width(), splits_canvas.winfo_height())
             #print('arrow', arrows[0][0].winfo_width())
-            #print('name', n_ent.winfo_width()) // need to say n_ent = None somewhere
+            # print('name', n_ent.winfo_width()) # need to say n_ent = None somewhere
             #print('entry x3', splits_canvas.nametowidget(self._run_menu._ordered_entries[0][0]).winfo_width())
             #print('window', window.winfo_width(), window.winfo_height() - header.winfo_height() - footer.winfo_height())
             #print('window', window.winfo_width(), window.winfo_height())
             window.destroy()
-            
+        
+        p = self._parent._timer.get_precision()
+        # tested at https://regex101.com/r/daenxT/3/
+        time_str = re.compile(r'^(((-?\d+(:[0-5]\d){0,2})?(\.\d+)?)|(-\.\d+))$')
+        no_minus = re.compile(r'^((\d+(:[0-5]\d){0,2})?(\.\d+)?)$')
         
         # uses self._parent._splits
         window = Toplevel(self._parent._root)
@@ -42,7 +46,7 @@ class Run_settings ():
         
         # dimensions
         w = 660 # arrow buttons are 40 wide apparently, then idk why but we +68 for the x and plus
-        headerh = 100 # idk
+        headerh = 126 # idk what default heights the various widgets have
         footerh = 42 # 22 (idk) + 10 (window padding) + 10 (button padding) 
         t_and_b = headerh + footerh # 112
         # 7 --> 412, 552
@@ -73,16 +77,33 @@ class Run_settings ():
         desc_label.grid(row = 1, column = 0, sticky = E)
         title.grid(row = 0, column = 1, columnspan = 3, sticky = (E, W))
         desc.grid(row = 1, column = 1, columnspan = 3, sticky = (E, W))
+         
+        def valid_time (current):
+            if time_str.match(current) and current != '':
+                return True
+            window.bell()
+            self.off_s.set('0')
+            return True 
+        val_time = (header.register(valid_time), '%P')
+        
+        off_label = Label(header, text = 'initial offset:')
+        self.off_s = StringVar(value = helpers.s_to_hms(self._parent._timer.get_offset(), p))
+        off_e = ttk.Entry(header, textvar = self.off_s, width = 6, justify = 'right', validate = 'focusout', validatecommand = val_time)
+        
+        off_label.grid(row = 2, column = 0, sticky = E)#, pady = (0, 10))
+        off_e.grid(row = 2, column = 1, columnspan = 3, sticky = W)#, pady = (0, 10))
+        
+        
         
         name = Label(header, text = '\tSplit Name', width = 16) #, bg = 'yellow')
         tot_time = Label(header, text = 'Total Time', width = 12) #, bg = 'pink')
         sp_time = Label(header, text = 'Split Time', width = 8) #, bg = 'red')
         best_time = Label(header, text = '  Best Time', width = 12) #, bg = 'grey')
         
-        name.grid(row = 2, column = 1, sticky = E, pady = (20, 0))
-        tot_time.grid(row = 2, column = 2, sticky = E, pady = (20, 0))
-        sp_time.grid(row = 2, column = 3, sticky = E, pady = (20, 0))
-        best_time.grid(row = 2, column = 4, sticky = E, pady = (20, 0))
+        name.grid(row = 3, column = 1, sticky = E, pady = (20, 0))
+        tot_time.grid(row = 3, column = 2, sticky = E, pady = (20, 0))
+        sp_time.grid(row = 3, column = 3, sticky = E, pady = (20, 0))
+        best_time.grid(row = 3, column = 4, sticky = E, pady = (20, 0))
         
         # very approximate in terms of weights
         #header.columnconfigure(0, weight = 3, pad = 0) # instead of weights 0, 1, 0, 0, 0
@@ -136,11 +157,6 @@ class Run_settings ():
         # the values of the tuple can then go and index the _entries dict
         # (I don't think name is needed here...) 
         self._run_menu._ordered_entries = []
-
-        p = self._parent._timer.get_precision()
-        # tested at https://regex101.com/r/daenxT/3/
-        time_str = re.compile(r'^(((-?\d+(:[0-5]\d){0,2})?(\.\d+)?)|(-\.\d+))$')
-        no_minus = re.compile(r'^((\d+(:[0-5]\d){0,2})?(\.\d+)?)$')
         
         # logic: (idk if this is right anymore lol)
         #    if you edit cumulative time, then split time should change (and checked to be non-negative first)
@@ -589,9 +605,19 @@ class Run_settings ():
                     if wgt[0] != wgt[1].get():
                         splits_frame.nametowidget(widgets[i]).validate() 
             
+            # update title, description
             self._parent._timer.set_title(title_txt.get())
             self._parent._timer.set_description(desc_txt.get())
             
+            # update offset
+            off_e.validate()
+            reset = self._parent._timer.is_reset() # this check is based on the old offset, so it needs to come before set_offset()
+            self._parent._timer.set_offset(helpers.hms_to_s(self.off_s.get()))
+            if reset:
+                self._parent._va._splitter_interface.reset(True)
+            
+            
+            # update splits
             short = long = False
             
             while len(self._parent._splits) > len(self._run_menu._ordered_entries):

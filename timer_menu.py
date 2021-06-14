@@ -99,21 +99,21 @@ class Timer_settings ():
         # also 2021 note: so I'm not sure which other functions rely on the hard coded row #s, so it's probably 
         #    safest to just make this row 3 have 0 height/0 weight or w/e instead of shifting rows 4-5 down 1
         timer = self._parent._timer #um good thing this fxn isn't recursive
-        time_str = re.compile(r'^(((-?\d+(:[0-5]\d){0,2})?(\.\d+)?)|(-\.\d+))$') # idr how to make this not accept empty strings lol 
-        def valid_time (current):
-            if time_str.match(current) and current != '':
-                return True
-            frame.bell()
-            self.off_s.set('0')
-            return True 
-        val_time = (frame.register(valid_time), '%P')
+        #time_str = re.compile(r'^(((-?\d+(:[0-5]\d){0,2})?(\.\d+)?)|(-\.\d+))$') # idr how to make this not accept empty strings lol 
+        #def valid_time (current):
+        #    if time_str.match(current) and current != '':
+        #        return True
+        #    frame.bell()
+        #    self.off_s.set('0')
+        #    return True 
+        #val_time = (frame.register(valid_time), '%P')
+        #
+        #off_l = Label(frame, text = 'initial offset:')
+        #self.off_s = StringVar(value = helpers.s_to_hms(timer.get_offset(), timer.get_precision()))
+        #off_e = ttk.Entry(frame, textvar = self.off_s, width = 6, justify = 'right', validate = 'focusout', validatecommand = val_time)
         
-        off_l = Label(frame, text = 'initial offset:')
-        self.off_s = StringVar(value = helpers.s_to_hms(timer.get_offset(), timer.get_precision()))
-        off_e = ttk.Entry(frame, textvar = self.off_s, width = 6, justify = 'right', validate = 'focusout', validatecommand = val_time)
-        
-        off_l.grid(row = 3, column = 0, sticky = E, pady = (0, 10))
-        off_e.grid(row = 3, column = 1, pady = (0, 10))
+        #off_l.grid(row = 3, column = 0, sticky = E, pady = (0, 10))
+        #off_e.grid(row = 3, column = 1, pady = (0, 10))
         
         # Row 4-5
         # Radiobutton widget:
@@ -155,11 +155,11 @@ class Timer_settings ():
             timer.set_precision(int(self.prec_s.get()))
             
             # offset
-            off_e.validate()
-            reset = timer.is_reset() # this check is based on the old offset, so it needs to come before set_offset()
-            timer.set_offset(helpers.hms_to_s(self.off_s.get()))
-            if reset:
-                va._splitter_interface.reset(True)
+            #off_e.validate()
+            #reset = timer.is_reset() # this check is based on the old offset, so it needs to come before set_offset()
+            #timer.set_offset(helpers.hms_to_s(self.off_s.get()))
+            #if reset:
+            #    va._splitter_interface.reset(True)
             
             
             # splits on screen and number of previous splits
