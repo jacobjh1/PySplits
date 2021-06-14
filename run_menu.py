@@ -12,8 +12,11 @@ class Run_settings ():
         self._run_menu = parent._run_menu
     
     def run (self):
-        if self._parent._layer1:
-            ####### possibly prevent this menu from opening while the timer is not reset i.e. can't modify splits while a run is ongoing??
+        # prevent this menu from opening while another menu is open or the timer is not reset
+        #     tbh, if I wanted to get more complex, I could prevent only certain functions in this
+        #     menu from occurring while the timer is not reset, but I really would rather not have to think
+        #     about all those edge cases if it's fine like this
+        if self._parent._layer1 or not self._parent._va._timer.is_reset():
             self._parent._root.bell()
             return 
         self._parent._layer1 = True

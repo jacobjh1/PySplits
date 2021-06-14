@@ -34,8 +34,14 @@ class SplitterInterface:
         self._pseudo_current = 0
                 
         def choose_action(event):
-            # maybe consider adding the menu here to deal w what happens when a menu is open (i.e. ban hotkey actions?)
             if event.keycode in self._bindings:
+                # ban hotkey actions if a menu is up, simplest just to do a wholesale ban
+                # a second option would be to only ban actions if _timer.is_on() and the menus are open
+                #     but that would also have some nuance that I don't really care about dealing with
+                if self._menu._layer1 or self._menu._layerbind:
+                    self._va._root.bell()
+                    return 
+                
                 action = self._bindings[event.keycode][0]
                 # if I someday really, really care about performance, then this if/else should be arranged from most common 
                 # event to least common event
