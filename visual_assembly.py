@@ -4,6 +4,7 @@ Edited 11/10/19, 11/12
 Minor Edits 11/14
 Edited 12/19/2020, 12/20 (changed from .pack (see old_versions) to .grid)
 Been working on and off, maybe every other day on average up to 1/3/21 (last day of winter break)
+Edited 6/14/2021 (summer break rn, just did some minor cosmetic changes to menu logic)
 
 @author: Jacob H.
 
@@ -13,12 +14,14 @@ visual_assembly.py
 '''
 
 #############################################################################
-# TO DO LATER LIST (incomplete)
-# 1) go look at the comment box over in splitter.reset about PB/best splits
-# 2) consider which menus should be allowed to be opened during a run/while (un)paused
-#    and also consider which settings can be changed and all that mid-run
-#    (edit this behavior in splitter_interface, maybe Run Settings)
+# TODO (non-exhaustive)
+# 1) saving (JSON format??) - timer settings separate from run settings??
+# 2) colors
 # 3) attempt counter
+#
+# 3) consider allowing certain Run menu functions to occur while the timer is not reset
+#    and consider allowing some key presses while certain menus are open
+# 4) go look at the comment box over in splitter.reset about PB/best splits
 #
 # ∞) graphs
 #############################################################################
@@ -39,8 +42,6 @@ class VA:
     Set Up all the variables... except uh... if I want to have the potential for > 1 Splitter at once w/ independent settings...
     these might need to become instance variables, not class variables
     '''
-
-    
         
     def __init__ (self):
         # assign constants
