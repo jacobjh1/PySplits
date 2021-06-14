@@ -13,6 +13,7 @@ class Run_settings ():
     
     def run (self):
         if self._parent._layer1:
+            ####### possibly prevent this menu from opening while the timer is not reset i.e. can't modify splits while a run is ongoing??
             self._parent._root.bell()
             return 
         self._parent._layer1 = True
@@ -617,6 +618,25 @@ class Run_settings ():
                 elif i%wps == 5: # best
                     self._parent._splits[i//wps].set_best(entry.get())
             
+            
+            # so one bug I found:
+            #     when editing the splits, if the splits are currently scrolled, and one of them is deleted, the splits won't properly display
+            #     it's only a cosmetic problem
+            # what's happening:
+            #    when the splits slice in va ends at some position x, and splits are removed s.t. there are fewer than x splits
+            #    that's when the splits slice is very wrong, and it needs to be fixed (here)
+            #    minor annoyance: pause movement in splitter interface should be accounted for 
+            #    (also, if the slice starts at 0, then that's actually fine)
+            # solution:
+            #    just undo the pause movement entirely, set the splits slice back to 0:splits on screen
+            #    and conveniently, splitter interface has a rest_of_pause() function that shows me how to undo a pause
+            #    so I know which variables need to be adjusted
+            
+            self._parent._va._splits_slice = slice(0, self._parent._va.splits_on_screen)
+            # so uh... the menus are constructed before the splitter interface... but this shouldn't be a problem
+            # bc updating() is not going to be called before all the initializing occurs
+            self._parent._va._splitter_interface._pause_movement = 0
+            self._parent._va._splitter_interface._pseudo_current = 0
             
             # actually reflect changes in root window
             self._parent._va.update_all()

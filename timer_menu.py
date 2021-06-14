@@ -16,7 +16,6 @@ class Timer_settings ():
         
     def timer (self):
         if self._parent._layer1:
-            ####### possibly prevent this menu from opening while the timer is not reset i.e. can't modify splits while a run is ongoing??
             self._parent._root.bell()
             return
         self._parent._layer1 = True

@@ -81,7 +81,7 @@ class SplitterInterface:
                 # I know I moved it to the helper, but it's still only 5 instances all throughout
                 self.increment_slice()
         except SplitOutOfBounds:
-            # this except needs to be here bc (maybe not so broadly, but somewhere, there ought to be a try/except bc
+            # this except needs to be here bc (maybe not so broadly, but somewhere, there ought to be a try/except)
             #    there can always be cases of "split when there are no splits left" or "unsplit at the first split" 
             pass 
             #print('split exception')  
@@ -119,8 +119,7 @@ class SplitterInterface:
                 self._timer.skip_split()
                 #if len(self._timer.get_all_splits()) - self._timer.current_index() + 1 > self._va.splits_on_screen \
                         #and self._timer.current_index() != 2:
-                if self._timer.current_index() > self._va.num_prev and self._va._splits_slice.stop < len(self._timer.get_all_splits()):
-                    self._va.set_splits_slice(self._va._splits_slice.start + 1, self._va._splits_slice.stop + 1) 
+                self.increment_slice()
             else:
                 #self._pseudo_current += 1 if self._va._splits_slice.stop < len(self._timer) else 0
                 # maybe minor issue in that current_index might() be == len bc that's how splitter knows a run is done

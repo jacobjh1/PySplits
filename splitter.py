@@ -170,7 +170,8 @@ class Splitter(Stopwatch):
     #        or... maybe this is okay and already works if we assume original_offset doesn't ever change
     #        bc it's like... if offset = 2, then it's not like you'll ever be able to start at 0 and go up to 2... bc you start at 2
     def is_reset (self):
-        return self._original_offset == self.get_run_time()
+        # 2021: i literally have a .is_on() check in the parent class..., why not just add an extra check? past me didn't see a reason not to 
+        return self._original_offset == self.get_run_time() and not self.is_on()
     
     ######################################################
     # Setters/Mutators

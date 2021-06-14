@@ -17,11 +17,8 @@ visual_assembly.py
 # 1) go look at the comment box over in splitter.reset about PB/best splits
 # 2) consider which menus should be allowed to be opened during a run/while (un)paused
 #    and also consider which settings can be changed and all that mid-run
-#    (edit this behavior in splitter_interface, maybe Timer Settings)
+#    (edit this behavior in splitter_interface, maybe Run Settings)
 # 3) attempt counter
-# 4) bug: when editing the splits, if the splits are currently scrolled, and one of them is deleted, the splits won't properly display
-#    it's only a cosmetic problem, however...
-#
 #
 # ∞) graphs
 #############################################################################
@@ -63,7 +60,7 @@ class VA:
         
         # Splitter(size, title, descr, precision, offset)
         # For debuggging, use a non-zero-argument Splitter 
-        self._timer = Splitter(5, 'OoT', 'hundo', 2, 0.0, self)
+        self._timer = Splitter(7, 'OoT', 'hundo', 2, 0.0, self)
         
         
         # what's being created      # what instance variables are being created/set 
@@ -172,7 +169,7 @@ class VA:
             
         future = False
         p = self._timer.get_precision()
-            
+                        
         splits = self._timer[self._splits_slice]
         for i, split, name, delta, time in zip(range(self._splits_slice.start, self._splits_slice.stop), splits, 
                                      reversed(self._splits_frame.grid_slaves(column = 0)), # i literally hate this terminology no joke
@@ -387,7 +384,7 @@ class VA:
 
     def update_all (self):
         self.update_header()
-        self.update_clock() # this one's probably redundant since the main loop (almost) always calls this
+        self.update_clock()
         self.update_splits()
         self.update_stats()
 
@@ -403,11 +400,14 @@ class VA:
         # though I do think the init's put_X's ought to call update_X() if I do make the updates asynchronous  
         # 
         # I can also save resources by only doing update_clock while timer.on == True
-        self.update_clock()
+        if self._timer.is_on():
+            self.update_clock()
         # self.update_splits()
         # self.update_stats()
         
         # update visuals (view stuff i.e. working with _root now)
+        ##### also, um... this could be part of the if... then I'd also need to add a root.update to update_all()
+        ##### but idk how expensive root.update is so I'll just leave it like this for now 
         self._root.update()
         # parameters: every x ms, what fxn, what argument(??) (part of ** parameter I think)
         #    2021: pretty sure ** actually refers to potential args that are passed to this very va_main_loop fxn, not that I have any
