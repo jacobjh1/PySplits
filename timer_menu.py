@@ -16,6 +16,7 @@ class Timer_settings ():
         
     def timer (self):
         if self._parent._layer1:
+            ####### possibly prevent this menu from opening while the timer is not reset i.e. can't modify splits while a run is ongoing??
             self._parent._root.bell()
             return
         self._parent._layer1 = True
@@ -96,7 +97,9 @@ class Timer_settings ():
         ########## TBH i don't really know why this belongs here... shouldn't it be in run_menu??
         # initial offset 
         #     can technically be positive, but negative values make more sense
-        timer = self._parent._timer
+        # also 2021 note: so I'm not sure which other functions rely on the hard coded row #s, so it's probably 
+        #    safest to just make this row 3 have 0 height/0 weight or w/e instead of shifting rows 4-5 down 1
+        timer = self._parent._timer #um good thing this fxn isn't recursive
         time_str = re.compile(r'^(((-?\d+(:[0-5]\d){0,2})?(\.\d+)?)|(-\.\d+))$') # idr how to make this not accept empty strings lol 
         def valid_time (current):
             if time_str.match(current) and current != '':
@@ -193,8 +196,12 @@ class Timer_settings ():
             current = timer.current_index()
             timer._current = 0
             for _ in range(current):
-                timer._current += 1 # these 2 lines with _current in particular are super duper sketchy
+                # these 2 lines with _current in particular are super duper sketchy bc _current really shouldn't be manually adjusted
+                timer._current += 1 
                 interface.increment_slice() # bc it's too dang hard to figure out the logic w/o just manually doing this
+            
+            # actually reflect changes in root window
+            self._parent._va.update_all()
             
             # clean up
             destroy()

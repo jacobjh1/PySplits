@@ -25,7 +25,7 @@ class Splitter(Stopwatch):
     with a stopwatch and manages/processes/outputs splits
     '''
 
-    def __init__ (self,  size : int = 1, title : str = '', descr : str = '', precision : int = 1, offset : float = 0.0):
+    def __init__ (self,  size : int = 1, title : str = '', descr : str = '', precision : int = 1, offset : float = 0.0, visual_assembly = None):
         '''
         Constructor:
             precision and offset are the same as for the Stopwatch constructor
@@ -37,6 +37,9 @@ class Splitter(Stopwatch):
         Stopwatch.__init__(self, precision, offset)
         # stays constant
         self._original_offset = offset
+        # unfortunate, but finish_reset really does need this due to TopLevel async OTHERSTUFF
+        # I make it default None just so Splitter works without needing a GUI
+        self._va = visual_assembly 
         
         # set title and description
         self._title = title
@@ -188,7 +191,7 @@ class Splitter(Stopwatch):
         
         # assume if they PB'ed, they wanna adjust their best splits as well
         if menu is not None and self._pbed:
-            misc_menuing.confirm_pb(menu, self)
+            misc_menuing.confirm_pb(menu, self) # misc menuing will call finish_reset when the user closes the window
         elif menu is not None and self._exist_bests:
             misc_menuing.confirm_best(menu, self)
         else:
@@ -216,6 +219,9 @@ class Splitter(Stopwatch):
         self._exist_bests = False
             
         self._current = 0 if len(self._splits) > 0 else None
+        
+        if self._va is not None:
+            self._va.update_all()
     
     # reassigns local time, I think is what should happen?
     def update (self):

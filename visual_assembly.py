@@ -17,9 +17,10 @@ visual_assembly.py
 # 1) go look at the comment box over in splitter.reset about PB/best splits
 # 2) consider which menus should be allowed to be opened during a run/while (un)paused
 #    and also consider which settings can be changed and all that mid-run
-#    (edit this behavior in splitter_interface)
+#    (edit this behavior in splitter_interface, maybe Timer Settings)
 # 3) attempt counter
-# 4) 
+# 4) bug: when editing the splits, if the splits are currently scrolled, and one of them is deleted, the splits won't properly display
+#    it's only a cosmetic problem, however...
 #
 #
 # ∞) graphs
@@ -62,7 +63,7 @@ class VA:
         
         # Splitter(size, title, descr, precision, offset)
         # For debuggging, use a non-zero-argument Splitter 
-        self._timer = Splitter(8, 'OoT', 'hundo', 2, 0.0)
+        self._timer = Splitter(5, 'OoT', 'hundo', 2, 0.0, self)
         
         
         # what's being created      # what instance variables are being created/set 
@@ -123,6 +124,8 @@ class VA:
         self._header_frame.rowconfigure(1, weight = 1)
         self._header_frame.columnconfigure(0, weight = 1)
         
+        self.update_header()
+        
     def update_header (self):
         self._title['text'] = self._timer.get_title()
         self._desc['text'] = self._timer.get_description()
@@ -157,6 +160,8 @@ class VA:
         self._splits_frame.columnconfigure(0, weight = 1)
         self._splits_frame.columnconfigure(1, weight = 1)
         self._splits_frame.columnconfigure(2, weight = 1)
+        
+        self.update_splits()
         
     # used over in splitter_interface 
     def set_splits_slice (self, new_start, new_stop):
@@ -284,6 +289,8 @@ class VA:
         self._split_best_lbl.grid(row = 3, column = 0, sticky = W)
         
         self._time_frame.columnconfigure(0, weight = 1)
+        
+        self.update_clock()
     
     def update_clock (self):
         self._total_time_str.set(self._timer.get_disp_run_time())
@@ -339,6 +346,8 @@ class VA:
         
         #self._stats_frame.columnconfigure(0, weight = 1)
         self._stats_frame.columnconfigure(1, weight = 1)
+        
+        self.update_stats()
     
     def update_stats (self):
         prec = self._timer.get_precision()
@@ -376,22 +385,32 @@ class VA:
         # sum of best splits
         self._sum_best_str.set(self._timer.get_disp_sum_best())
 
+    def update_all (self):
+        self.update_header()
+        self.update_clock() # this one's probably redundant since the main loop (almost) always calls this
+        self.update_splits()
+        self.update_stats()
+
     def va_main_loop (self):
         # Update view based on controller stuff
-        self.update_header()
+        # self.update_header()
+        
         # so I was kinda thinking... I don't really need to do all of these things once every 10 ms... right? I might
         #     be able to do update_header and update_splits only when they need to change. Might save a bunch of resources
         #     bc really, only the update_clock needs to constantly run, and everything else can be asynchronous.
         # would it really be that hard to find the various times the display needs to update? Wouldn't it just be after the various menu saves?
-        #
+        # 
+        # though I do think the init's put_X's ought to call update_X() if I do make the updates asynchronous  
+        # 
         # I can also save resources by only doing update_clock while timer.on == True
         self.update_clock()
-        self.update_splits()
-        self.update_stats()
+        # self.update_splits()
+        # self.update_stats()
         
         # update visuals (view stuff i.e. working with _root now)
         self._root.update()
         # parameters: every x ms, what fxn, what argument(??) (part of ** parameter I think)
+        #    2021: pretty sure ** actually refers to potential args that are passed to this very va_main_loop fxn, not that I have any
         self._root.after(10, self.va_main_loop)
         
 if __name__ == "__main__":

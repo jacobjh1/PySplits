@@ -26,17 +26,19 @@ class SplitterInterface:
         self._va = visual_assembly
         self._menu = menu
         self._pause_movement = 0
-        # so iirc, there's the timer._current, which is the current split index
+        # so iirc, there's the timer._current_index(), which is the current split index
         # then there's the pseudo_current, which is usually == current, but sometimes might get desynced when the timer is paused
         #    e.g. you pause the timer, and then arrow up/down, and that is psudo adjustment bc you want to change the visuals w/o 
         #    changing the underlying splits' data
-        # um no... pseudo_current + current index = whatever I was thinking above and note that this RHS can == len(timer) in certain cases 
+        # um no... pseudo_current + current_index() = whatever I was thinking above and note that this RHS can == len(timer) in certain cases 
         self._pseudo_current = 0
                 
         def choose_action(event):
             # maybe consider adding the menu here to deal w what happens when a menu is open (i.e. ban hotkey actions?)
             if event.keycode in self._bindings:
                 action = self._bindings[event.keycode][0]
+                # if I someday really, really care about performance, then this if/else should be arranged from most common 
+                # event to least common event
                 if action == 'split':
                     self.split()
                 elif action == 'unsplit':
@@ -47,6 +49,11 @@ class SplitterInterface:
                     self.pause()
                 elif action == 'reset':
                     self.reset()
+                # problem occurs when there's a TopLevel window i.e. if upon reset, there are best splits/PB
+                #    then update_all is called before splits are updated, 
+                # solution: misc_menuing's 2 destroy()s also need to have an update_all()
+                #    correction: update_all in splitter.finish_reset, not in misc_menuing
+                self._va.update_all()
                     
         self._root.bind("<Key>", choose_action)
         

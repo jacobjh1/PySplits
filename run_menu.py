@@ -112,7 +112,7 @@ class Run_settings ():
         splits_frame.bind('<Configure>', lambda event : splits_canvas.configure(scrollregion = splits_canvas.bbox('all')))
 
 
-        # probably bad practice but idc at this point. validate is really annoying
+        # probably bad practice to add instance variables to run_menu but idc at this point. validate is really annoying
         
         # this data structure is in the form of:
         #
@@ -324,6 +324,11 @@ class Run_settings ():
             #widget = splits_canvas.nametowidget(widget)
             #print(widget, widget.winfo_width(), widget.winfo_height())
         
+        # evidently I forgot to comment on what %P and %W mean...
+        # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/entry-validation.html
+        # pretty sure that they specify which arguments to pass to my valid_X functions
+        #       %P gives the "current" arg which is the user's proposed text
+        #       %W gives the widget name i.e. what Entry the user interacted with
         val_c = (splits_frame.register(valid_cumulative), '%P', '%W')
         val_s = (splits_frame.register(valid_split), '%P', '%W')
         val_b = (splits_frame.register(valid_best), '%P', '%W')
@@ -611,6 +616,10 @@ class Run_settings ():
                     self._parent._splits[i//wps].set_last_time(entry.get())
                 elif i%wps == 5: # best
                     self._parent._splits[i//wps].set_best(entry.get())
+            
+            
+            # actually reflect changes in root window
+            self._parent._va.update_all()
             
             destroy()
         

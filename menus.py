@@ -30,6 +30,20 @@ from run_menu import Run_settings
 from hotkey_menu import Hotkey_settings
 from timer_menu import Timer_settings
 
+# some comments about the structure of the "subclass" Menus 
+# from 2021, since I didn't really make high level comments last year
+#
+# so I currently have 3 "subclass" Menus which aren't really subclasses bc they don't inherit
+# but I do pass this MenuSystem object, and I call it _parent in the subclasses, so it's kind of similar 
+#    (I don't remember why I chose not to inherit here)
+# anyway
+# each subclass (Run_settings, Hotkey_settings, Timer_settings) takes 1 arg: the MenuSystem
+# each subclass has one really big function that gets called when the user opens the particular menu
+#    note when I add_command, I have to pass a function
+# of note, the Run and Timer menus have an update and cancel button
+#    the update button calls an updating() function that updates the GUI/VA appropriately
+#    so the bulk of each menu's functionality is related to the TopLevel window, not the root
+
 class MenuSystem:
     
     def __init__ (self, root, timer, splits, bindings_listener, visual_assembly):
