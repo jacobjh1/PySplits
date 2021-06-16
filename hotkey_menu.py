@@ -7,7 +7,7 @@ class Hotkey_settings ():
         self._parent = parent
     
     def hotkeys (self):
-        # THINGS TO DO:
+        # TODO:
         # 1) spice it up with colors and stuff
         
         if self._parent._layer1:

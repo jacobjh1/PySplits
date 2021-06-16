@@ -23,12 +23,15 @@ from tkinter import Menu, Toplevel, Frame, Canvas, Listbox, Scrollbar, Label, Bu
 from tkinter import CASCADE, CHECKBUTTON, COMMAND, RADIOBUTTON, SEPARATOR
 from tkinter import TOP, LEFT, RIGHT, BOTH, Y, N, S, E, W, VERTICAL
 from tkinter import ttk
+
 import re
+
 from split import Split
 import helpers
 from run_menu import Run_settings
 from hotkey_menu import Hotkey_settings
 from timer_menu import Timer_settings
+from color_menu import Color_settings
 
 # some comments about the structure of the "subclass" Menus 
 # from 2021, since I didn't really make high level comments last year
@@ -71,7 +74,7 @@ class MenuSystem:
         run_settings = Run_settings(self)
         hotkey_settings = Hotkey_settings(self)
         timer_settings = Timer_settings(self)
-        
+        color_settings = Color_settings(self)
         #self.run_settings()
     
 
@@ -86,7 +89,7 @@ class MenuSystem:
         #    add an initial offset
         self._layout_menu.add_command(label = 'Timer Preferences...', command = timer_settings.timer)
         # Colors, mostly (maybe fonts)
-        self._layout_menu.add_command(label = 'Fonts and Colors...')
+        self._layout_menu.add_command(label = 'Fonts and Colors...', command = color_settings.fonts_colors)
         
         self._menu_bar.add_cascade(label = 'Timer', menu = self._layout_menu)
         

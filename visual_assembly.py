@@ -17,7 +17,8 @@ visual_assembly.py
 # TODO (non-exhaustive)
 # 1) saving (JSON format??) - timer settings separate from run settings??
 # 2) colors
-# 3) attempt counter
+# 3) separate scrolling splits and (un)splitting
+# 4) attempt counter
 #
 # 3) consider allowing certain Run menu functions to occur while the timer is not reset
 #    and consider allowing some key presses while certain menus are open
@@ -26,8 +27,7 @@ visual_assembly.py
 # ∞) graphs
 #############################################################################
 
-from tkinter import Tk, Frame, Label, StringVar
-from tkinter.font import Font
+from tkinter import Tk, Frame, Label, StringVar, font
 from tkinter import TOP, BOTTOM, LEFT, RIGHT, BOTH, X, Y, N, S, E, W
 
 from splitter import Splitter
@@ -44,36 +44,58 @@ class VA:
     '''
         
     def __init__ (self):
-        # assign constants
+        ################################
+        # assign constants, make root
+        
+        # timer preferences
         self.splits_on_screen = 4
         self.num_prev = 2
         self.include_last_split = True
+        
+        # app colors
         self.bg_color = 'black'
-        self.mid_color = 'white'
-        self.app_color = 'grey'
-        self.main_font_color = 'black'
-        self.second_font_color = 'white'
+        self.mid_color = 'grey60'
+        self.accent_color = 'white'
+        
+        # font colors
+        self.title_color = 'black'
+        self.desc_color = 'black'
+        self.split_text_color = 'black'
+        self.lower_text_color = 'white'
         self.time_color = 'green'
         self.ahead = 'green'
         self.behind = 'red'
         self.best_color = 'blue'
         
+        # root window, needs to come before nametofont(), but after bg_color, though other rearranging could work
+        self.make_root()            # creates self._root
+        
+        # font (need to use them in config(font = fontvar)), roughly corresponds to the font colors vars
+        # TODO: also, I use the Font() constructor in 2 places here, so those should move up here 
+        self.title_font = font.nametofont('TkDefaultFont')
+        self.desc_font = font.nametofont('TkDefaultFont')
+        self.split_font = font.nametofont('TkDefaultFont') # also font for stats 
+        self.big_time_font = 'TkDefaultFont 30'
+        self.small_time_font = 'TkDefaultFont 20'
+        
+        ################################
         
         # Splitter(size, title, descr, precision, offset)
         # For debuggging, use a non-zero-argument Splitter 
         self._timer = Splitter(7, 'OoT', 'hundo', 2, 0.0, self)
         
-        
         # what's being created      # what instance variables are being created/set 
         
-        # root window        
-        self.make_root()            # self._root
-        # various frames
+        # various frames, which I'm 90% sure are all independent, so order probably doesn't matter...
         self.put_header()           # self._header_frame and self._header
         self.put_splits()           # self._splits_frame and self._splits_slice
         self.put_clock()            # self._time_frame, self._total_time_str, and self._split_time_str
             # i think clock will end up being a bit of a misnomer - it's more like the clock + current split info probably
         self.put_stats()
+        self.update_all()
+        self.update_header_fc()
+        self.update_clock_fc()
+        # self.update_fonts_colors() little less efficient to do the combined function
         
         # allow hotkey bindings
         self._binder = Binder(self._root, self._timer)
@@ -94,7 +116,6 @@ class VA:
         self._root.title("PySplits")
         # probably will need to change the quit function to a more complicated clean-up function
         self._root.protocol('WM_DELETE_WINDOW', self._root.destroy)
-        self._root['bg'] = self.bg_color
         # change default app dimensions/size here
         self._root.geometry('250x500') # width x height, rn it's arbitrary
     
@@ -104,7 +125,7 @@ class VA:
         #    I imagine in the future, with more toggle-able/configurable options, put can just be run again with everything the same
         #    except for those toggled values/constants
         
-        self._header_frame = Frame(self._root, bg = self.app_color)
+        self._header_frame = Frame(self._root)#, bg = self.mid_color)
         self._header_frame.grid(row = 0, column = 0, sticky = (N, E, W), pady = (5, 10))
         
         # weight 0 is by default; header looks nicer when it has a constant height
@@ -112,28 +133,30 @@ class VA:
         self._root.columnconfigure(0, weight = 1)
         
         # one row for title, one row for desc
-        self._title = Label(self._header_frame, bg = self.app_color, fg = self.main_font_color)
+        self._title = Label(self._header_frame)#, bg = self.mid_color, fg = self.title_color)
         self._title.grid(row = 0, column = 0, sticky = (E, W))
         
-        self._desc = Label(self._header_frame, bg = self.app_color, fg = self.main_font_color)
+        self._desc = Label(self._header_frame)#, bg = self.mid_color, fg = self.desc_color)
         self._desc.grid(row = 1, column = 0, sticky = (E, W))
 
         self._header_frame.rowconfigure(0, weight = 1)       
         self._header_frame.rowconfigure(1, weight = 1)
         self._header_frame.columnconfigure(0, weight = 1)
         
-        self.update_header()
-        
     def update_header (self):
         self._title['text'] = self._timer.get_title()
         self._desc['text'] = self._timer.get_description()
-        self._title['bg'] = self._desc['bg'] = self.app_color
-        self._title['fg'] = self._desc['fg'] = self.main_font_color
         
+    def update_header_fc (self):
+        self._root.config(bg = self.bg_color)
+        self._header_frame.config(bg = self.mid_color)
+        self._title.config(bg = self.mid_color, fg = self.title_color, font = self.title_font)
+        self._desc.config(bg = self.mid_color, fg = self.desc_color, font = self.desc_font)
+
     def put_split(self, frame, rowi):
-        name = Label(frame, bg = self.app_color, fg = self.main_font_color)
-        delta = Label(frame, bg = self.app_color, fg = self.main_font_color)
-        time = Label(frame, bg = self.app_color, fg = self.main_font_color)
+        name = Label(frame)#, bg = self.mid_color, fg = self.split_text_color)
+        delta = Label(frame)#, bg = self.mid_color, fg = self.split_text_color)
+        time = Label(frame)#, bg = self.mid_color, fg = self.split_text_color)
         
         # don't technically need the pady here
         name.grid(row = rowi, column = 0, padx = (4, 0), pady = 2, sticky = (N, S, E, W))
@@ -143,7 +166,7 @@ class VA:
         frame.rowconfigure(rowi, weight = 1)    
     
     def put_splits (self):        
-        self._splits_frame = Frame(self._root, bg = self.mid_color)
+        self._splits_frame = Frame(self._root)#, bg = self.accent_color)
         self._splits_frame.grid(row = 1, column = 0, sticky = (N, S, E, W)) 
         self._root.rowconfigure(1, weight = 1)
         
@@ -159,13 +182,14 @@ class VA:
         self._splits_frame.columnconfigure(1, weight = 1)
         self._splits_frame.columnconfigure(2, weight = 1)
         
-        self.update_splits()
-        
     # used over in splitter_interface 
     def set_splits_slice (self, new_start, new_stop):
         self._splits_slice = slice(new_start, new_stop)
     
     def update_splits(self):
+        # only color, no font  
+        self._splits_frame.config(bg = self.accent_color)
+        
         current = self._timer.current_index()
             
         future = False
@@ -183,7 +207,7 @@ class VA:
             
             # i should probably make a helper function in split.py to get the color; I use it at least 3 times
             if len(delta_text) == 1:
-                color = self.main_font_color
+                color = self.split_text_color
             elif delta_text[2] == '+':
                 color = self.behind
             else: # delta_text[2] == '-':
@@ -191,9 +215,9 @@ class VA:
             if split.is_a_best():
                 color = self.best_color
             
-            name.configure(text = split.get_name())
-            delta.configure(text = delta_text, fg = color)
-            time.configure(text = split.get_disp_time(p, future))
+            name.configure(text = split.get_name(), bg = self.mid_color, fg = self.split_text_color, font = self.split_font)
+            delta.configure(text = delta_text, bg = self.mid_color, fg = color, font = self.split_font)
+            time.configure(text = split.get_disp_time(p, future), bg = self.mid_color, fg = self.split_text_color, font = self.split_font)
             
             # even borders omg finally
             if i == self._splits_slice.start:
@@ -214,21 +238,23 @@ class VA:
             last_split = self._timer[-1]
             future = current != len(self._timer) # if current is length, then the run is finished, so future = False
             # split_name 
-            self._splits_frame.grid_slaves(column = 0)[0].configure(text = last_split.get_name())
+            self._splits_frame.grid_slaves(column = 0)[0].configure(text = last_split.get_name(), \
+                                                                    bg = self.mid_color, fg = self.split_text_color, font = self.split_font)
             
             # split_delta
             delta_text = last_split.get_disp_delta(p)
             if len(delta_text) == 1:
-                color = self.main_font_color
+                color = self.split_text_color
             elif delta_text[2] == '+':
                 color = self.behind
             else: # delta_text[2] == '-':
                 color = self.ahead
             if last_split.is_a_best():
                 color = self.best_color
-            self._splits_frame.grid_slaves(column = 1)[0].configure(text = delta_text, fg = color)
+            self._splits_frame.grid_slaves(column = 1)[0].configure(text = delta_text, bg = self.mid_color, fg = color, font = self.split_font)
             # split_time
-            self._splits_frame.grid_slaves(column = 2)[0].configure(text = last_split.get_disp_time(p, future))
+            self._splits_frame.grid_slaves(column = 2)[0].configure(text = last_split.get_disp_time(p, future), \
+                                                                    bg = self.mid_color, fg = self.split_text_color, font = self.split_font)
     
     # used if we need to ungrid some splits (used over in menus)
     # num = number of splits on screen
@@ -260,35 +286,33 @@ class VA:
             current += 1
     
     def put_clock (self):        
-        self._time_frame = Frame(self._root, bg = self.bg_color)
+        self._time_frame = Frame(self._root)#, bg = self.bg_color)
         self._time_frame.grid(row = 2, column = 0, sticky = (E, W), pady = 5)
         self._root.rowconfigure(2, pad = 5) # weight = 0 
         
         self._total_time_str = StringVar()
-        f_big = Font(self._time_frame, size = 30)
-        self._total_time_lbl = Label(self._time_frame, textvar = self._total_time_str, bg = self.bg_color, fg = self.time_color, font = f_big)
+        # f_big = font.Font(self._time_frame, size = 30)
+        self._total_time_lbl = Label(self._time_frame, textvar = self._total_time_str)#, bg = self.bg_color, fg = self.time_color, font = f_big)
         self._total_time_lbl.grid(row = 0, column = 0, sticky = E)
         
         self._split_time_str = StringVar()
-        f_small = Font(self._time_frame, size = 20)
-        self._split_time_lbl = Label(self._time_frame, textvar = self._split_time_str, bg = self.bg_color, fg = self.time_color, font = f_small)
+        # f_small = font.Font(self._time_frame, size = 20)
+        self._split_time_lbl = Label(self._time_frame, textvar = self._split_time_str)#, bg = self.bg_color, fg = self.time_color, font = f_small)
         self._split_time_lbl.grid(row = 1, column = 0, rowspan = 3, sticky = E)
         
         self._split_name_str = StringVar()
-        self._split_name_lbl = Label(self._time_frame, textvar = self._split_name_str, bg = self.bg_color, fg = self.second_font_color)
+        self._split_name_lbl = Label(self._time_frame, textvar = self._split_name_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._split_name_lbl.grid(row = 1, column = 0, sticky = W)
         
         self._split_pb_str = StringVar()
-        self._split_pb_lbl = Label(self._time_frame, textvar = self._split_pb_str, bg = self.bg_color, fg = self.second_font_color)
+        self._split_pb_lbl = Label(self._time_frame, textvar = self._split_pb_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._split_pb_lbl.grid(row = 2, column = 0, sticky = W)
         
         self._split_best_str = StringVar()
-        self._split_best_lbl = Label(self._time_frame, textvar = self._split_best_str, bg = self.bg_color, fg = self.second_font_color)
+        self._split_best_lbl = Label(self._time_frame, textvar = self._split_best_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._split_best_lbl.grid(row = 3, column = 0, sticky = W)
         
         self._time_frame.columnconfigure(0, weight = 1)
-        
-        self.update_clock()
     
     def update_clock (self):
         self._total_time_str.set(self._timer.get_disp_run_time())
@@ -312,42 +336,59 @@ class VA:
             best = '-'
         self._split_best_str.set('Best: ' + best)
         
+    def update_clock_fc (self):
+        self._time_frame.config(bg = self.bg_color)
+        self._total_time_lbl.config(bg = self.bg_color, fg = self.time_color, font = self.big_time_font)
+        self._split_time_lbl.config(bg = self.bg_color, fg = self.time_color, font = self.small_time_font)
+        self._split_name_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._split_pb_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._split_best_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        
     def put_stats (self):
-        self._stats_frame = Frame(self._root, bg = self.bg_color)
+        self._stats_frame = Frame(self._root)#, bg = self.bg_color)
         self._stats_frame.grid(row = 3, column = 0, sticky = (E, W), pady = 5)
         self._root.rowconfigure(3, pad = 5)
         
         # What do I want here? Possible time save, Previous segment (delta), best possible and sum of best
-        self._tsv = Label(self._stats_frame, text = 'possible time save: ', bg = self.bg_color, fg = self.second_font_color)
+        self._tsv = Label(self._stats_frame, text = 'possible time save: ')#, bg = self.bg_color, fg = self.lower_text_color)
         self._tsv.grid(row = 0, column = 0, sticky = W)
         self._time_save_str = StringVar()
-        self._time_save_lbl = Label(self._stats_frame, textvar = self._time_save_str, bg = self.bg_color, fg = self.second_font_color)
+        self._time_save_lbl = Label(self._stats_frame, textvar = self._time_save_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._time_save_lbl.grid(row = 0, column = 1, sticky = W)
         
-        self._pdel = Label(self._stats_frame, text = 'previous segment: ', bg = self.bg_color, fg = self.second_font_color)
+        self._pdel = Label(self._stats_frame, text = 'previous segment: ')#, bg = self.bg_color, fg = self.lower_text_color)
         self._pdel.grid(row = 1, column = 0, sticky = W)
         self._prev_delta_str = StringVar()
-        self._prev_delta_lbl = Label(self._stats_frame, textvar = self._prev_delta_str, bg = self.bg_color, fg = self.second_font_color)
+        self._prev_delta_lbl = Label(self._stats_frame, textvar = self._prev_delta_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._prev_delta_lbl.grid(row = 1, column = 1, sticky = W)
         
-        self._bpos = Label(self._stats_frame, text = 'best possible time: ', bg = self.bg_color, fg = self.second_font_color)
+        self._bpos = Label(self._stats_frame, text = 'best possible time: ')#, bg = self.bg_color, fg = self.lower_text_color)
         self._bpos.grid(row = 2, column = 0, sticky = W)
         self._best_poss_str = StringVar()
-        self._best_poss_lbl = Label(self._stats_frame, textvar=  self._best_poss_str, bg = self.bg_color, fg = self.second_font_color)
+        self._best_poss_lbl = Label(self._stats_frame, textvar=  self._best_poss_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._best_poss_lbl.grid(row = 2, column = 1, sticky = W)
         
-        self._sbest = Label(self._stats_frame, text = 'sum of best splits: ', bg = self.bg_color, fg = self.second_font_color)
+        self._sbest = Label(self._stats_frame, text = 'sum of best splits: ')#, bg = self.bg_color, fg = self.lower_text_color)
         self._sbest.grid(row = 3, column = 0, sticky = W)
         self._sum_best_str = StringVar()
-        self._sum_best_lbl = Label(self._stats_frame, textvar = self._sum_best_str, bg = self.bg_color, fg = self.second_font_color)
+        self._sum_best_lbl = Label(self._stats_frame, textvar = self._sum_best_str)#, bg = self.bg_color, fg = self.lower_text_color)
         self._sum_best_lbl.grid(row = 3, column = 1, sticky = W)
         
         #self._stats_frame.columnconfigure(0, weight = 1)
         self._stats_frame.columnconfigure(1, weight = 1)
-        
-        self.update_stats()
     
     def update_stats (self):
+        # colors and fonts, do it first so that more specific colors can override later on
+        self._stats_frame.config(bg = self.bg_color)
+        self._tsv.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._time_save_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._pdel.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._prev_delta_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._bpos.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._best_poss_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._sbest.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        self._sum_best_lbl.config(bg = self.bg_color, fg = self.lower_text_color, font = self.split_font)
+        
         prec = self._timer.get_precision()
         
         # possible time save
@@ -371,7 +412,7 @@ class VA:
         elif len(delta) > 1 and delta[0] == '-':
             color = self.ahead
         else:
-            color = self.second_font_color
+            color = self.lower_text_color
         if self._timer[previous].is_a_best():
             color = self.best_color
         self._prev_delta_str.set(delta)
@@ -382,12 +423,21 @@ class VA:
         
         # sum of best splits
         self._sum_best_str.set(self._timer.get_disp_sum_best())
+        
 
+    # update all portions of the app, update everything except possibly fonts and colors
     def update_all (self):
         self.update_header()
         self.update_clock()
         self.update_splits()
         self.update_stats()
+
+    # update all portions of the app, update fonts and colors (possibly other stuff, but that's incidental)
+    def update_fonts_colors (self):
+        self.update_header_fc()
+        self.update_clock_fc()
+        self.update_splits() # easier just to do it all at once
+        self.update_stats()  # easier just to do it all at once
 
     def va_main_loop (self):
         # Update view based on controller stuff
@@ -409,6 +459,7 @@ class VA:
         # update visuals (view stuff i.e. working with _root now)
         ##### also, um... this could be part of the if... then I'd also need to add a root.update to update_all()
         ##### but idk how expensive root.update is so I'll just leave it like this for now 
+        ##### actually... idk taking into account the fonts and colors, which only update upon closing the corresponding menu 
         self._root.update()
         # parameters: every x ms, what fxn, what argument(??) (part of ** parameter I think)
         #    2021: pretty sure ** actually refers to potential args that are passed to this very va_main_loop fxn, not that I have any

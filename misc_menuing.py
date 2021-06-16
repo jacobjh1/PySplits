@@ -6,6 +6,13 @@ def confirm_pb (menu, timer):
         return
     menu._layer1 = True
 
+    ##########
+    # other TODO: can use a MessageBox instead - is a lot easier bc it's built into Tkinter
+    # and huh - there's other dialogue box features available with Toplevel that let you have a little more control
+    # over what can/can't be interacted with while the dialog is open https://tkdocs.com/tutorial/windows.html
+    # tbh I'm fairly comfortable with what I currently have
+    # the nice thing about these is they might be able to give a little more native-looking/OS specific dialog boxes 
+    #
     ########## need to add a cancel option - wouldn't need to change much: just do a destroy() without the finish_reset() part
     #    bc the first part of reset() that calls confirm() doesn't change any instance variables of the timer
     # actually that's a lie: we'd need to change both _pbed and _exists_best to False (just in case) 
