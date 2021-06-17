@@ -1,4 +1,5 @@
 from tkinter import Toplevel, Text, Button, Label, N, S, E, W
+from file_menu import File_settings
 
 def confirm_pb (menu, timer):
     if menu._layer1: # kind of a redundant check bc if menu is not None, then layer1 needs to be false anyway, but whatever
@@ -20,20 +21,26 @@ def confirm_pb (menu, timer):
         menu._layer1 = False
         window.destroy()
         #print(timer._pbed)
+    
+    def y ():
+        destroy()
+        # what a hack lol
+        timer.finish_reset(lambda : File_settings(menu).save_run(True))
+    
+    def n ():
+        timer._pbed = False
+        timer._exist_bests = False
+        destroy()
         timer.finish_reset()
     
     window = Toplevel(menu._root)
     window.title('Congratulations!')
-    window.protocol('WM_DELETE_WINDOW', destroy)
+    window.protocol('WM_DELETE_WINDOW', n)
     
     txt = Label(window) # justify 'center' or anchor 'e' or grid.sticky??
-    txt.configure(text = "You've achieved a PB!\nWould you like to overwrite the times from your previous PB?")
-    
-    def n ():
-        timer._pbed = False
-        destroy()
+    txt.configure(text = "You've achieved a PB!\nWould you like to save these times over your previous PB?")
         
-    yes = Button(window, text = 'Yes', command = destroy) # sidenote, this means clicking the red x to close the window will save the PB
+    yes = Button(window, text = 'Yes', command = y)
     no = Button(window, text = 'No', command = n)
     
     txt.grid(row = 0, column = 0, columnspan = 2)
@@ -54,20 +61,24 @@ def confirm_best (menu, timer):
     def destroy ():
         menu._layer1 = False
         window.destroy()
-        timer.finish_reset()
     
-    window = Toplevel(menu._root)
-    window.title('Congratulations!')
-    window.protocol('WM_DELETE_WINDOW', destroy)
-    
-    txt = Label(window) # justify 'center' or anchor 'e' or grid.sticky??
-    txt.configure(text = "You've achieved one or more best splits!\nWould you like to overwrite the previous best times?")
+    def y ():
+        destroy()
+        timer.finish_reset(lambda : File_settings(menu).save_run(True))
     
     def n ():
         timer._exist_bests = False
         destroy()
+        timer.finish_reset()
+    
+    window = Toplevel(menu._root)
+    window.title('Congratulations!')
+    window.protocol('WM_DELETE_WINDOW', n)
+    
+    txt = Label(window) # justify 'center' or anchor 'e' or grid.sticky??
+    txt.configure(text = "You've achieved one or more best splits!\nWould you like to save these times over your previous best times?")
         
-    yes = Button(window, text = 'Yes', command = destroy) # sidenote, this means clicking the red x to close the window will save the PB
+    yes = Button(window, text = 'Yes', command = y)
     no = Button(window, text = 'No', command = n)
     
     txt.grid(row = 0, column = 0, columnspan = 2)

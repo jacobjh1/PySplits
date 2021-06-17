@@ -27,13 +27,16 @@ visual_assembly.py
 # ∞) graphs
 #############################################################################
 
-from tkinter import Tk, Frame, Label, StringVar, font
+from tkinter import Tk, Frame, Label, StringVar
 from tkinter import TOP, BOTTOM, LEFT, RIGHT, BOTH, X, Y, N, S, E, W
 
 from splitter import Splitter
 from key_binding import Binder
 from splitter_interface import SplitterInterface
 from menus import MenuSystem
+from file_loader import File_loader
+import os 
+import json
 
 # VA for VisualAssembly
 class VA:
@@ -70,23 +73,22 @@ class VA:
         # root window, needs to come before nametofont(), but after bg_color, though other rearranging could work
         self.make_root()            # creates self._root
         
-        # font (need to use them in config(font = fontvar)), roughly corresponds to the font colors vars
-        # TODO: also, I use the Font() constructor in 2 places here, so those should move up here 
-        self.title_font = font.nametofont('TkDefaultFont')
-        self.desc_font = font.nametofont('TkDefaultFont')
-        self.split_font = font.nametofont('TkDefaultFont') # also font for stats 
+        # font choices
+        self.title_font = 'TkDefaultFont'
+        self.desc_font = 'TkDefaultFont'
+        self.split_font = 'TkDefaultFont' # also font for stats 
         self.big_time_font = 'TkDefaultFont 30'
         self.small_time_font = 'TkDefaultFont 20'
         
         ################################
         
         # Splitter(size, title, descr, precision, offset)
-        # For debuggging, use a non-zero-argument Splitter 
-        self._timer = Splitter(7, 'OoT', 'hundo', 2, 0.0, self)
-        
-        # what's being created      # what instance variables are being created/set 
+        # For debuggging, use more than 1 argument for Splitter 
+        self._timer = Splitter(self)
         
         # various frames, which I'm 90% sure are all independent, so order probably doesn't matter...
+        
+        # what's being created      # what instance variables are being created/set 
         self.put_header()           # self._header_frame and self._header
         self.put_splits()           # self._splits_frame and self._splits_slice
         self.put_clock()            # self._time_frame, self._total_time_str, and self._split_time_str
@@ -100,15 +102,32 @@ class VA:
         # allow hotkey bindings
         self._binder = Binder(self._root, self._timer)
         
-        
         # make menus
+        self._root.option_add('*tearOff', False) # tkdocs highly recommends this
         self._menus = MenuSystem(self._root, self._timer, self._timer.get_all_splits(), self._binder, self)
         # make menus visible
         self._root.config(menu=self._menus._menu_bar)
-        self._root.option_add('*tearOff', False) # tkdocs highly recommends this
         
         # the menus might eventually need to come before this
         self._splitter_interface = SplitterInterface(self._timer, self._binder.get_bindings_dict(), self._root, self, self._menus)
+        
+        # try to load most recent timer settings, most recent run
+        loader = File_loader(self)
+        self._curr_timer_path = None
+        self._curr_run_path = None
+        try:
+            for i, path in enumerate(open(os.path.join('pysplit_settings', 'recents.txt'))):
+                path = path.rstrip()
+                if i == 0:
+                    loader.get_timer(path)
+                    self._curr_timer_path = path
+                elif i == 1:
+                    loader.get_run(path)
+                    self._curr_run_path = path
+        except json.decoder.JSONDecodeError:
+            self._root.bell()
+        except FileNotFoundError:
+            pass
         
     def make_root (self):
         self._root = Tk()
@@ -220,18 +239,23 @@ class VA:
             time.configure(text = split.get_disp_time(p, future), bg = self.mid_color, fg = self.split_text_color, font = self.split_font)
             
             # even borders omg finally
-            if i == self._splits_slice.start:
-                name.grid(pady = (4, 2))
-                delta.grid(pady = (4, 2))
-                time.grid(pady = (4, 2))
-            elif i == self._splits_slice.stop - 1:
-                name.grid(pady = (2, 4))
-                delta.grid(pady = (2, 4))
-                time.grid(pady = (2, 4))
+            if len(self._timer) == 1:
+                name.grid(pady = 4)
+                delta.grid(pady = 4)
+                time.grid(pady = 4)
             else:
-                name.grid(pady = 2)
-                delta.grid(pady = 2)
-                time.grid(pady = 2)
+                if i == self._splits_slice.start:
+                    name.grid(pady = (4, 2))
+                    delta.grid(pady = (4, 2))
+                    time.grid(pady = (4, 2))
+                elif i == self._splits_slice.stop - 1:
+                    name.grid(pady = (2, 4))
+                    delta.grid(pady = (2, 4))
+                    time.grid(pady = (2, 4))
+                else:
+                    name.grid(pady = 2)
+                    delta.grid(pady = 2)
+                    time.grid(pady = 2)
             
         if self.include_last_split:
             # again, another reason why splits need to be >0 in length (there was the reason in the menu GUI also)

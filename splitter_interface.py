@@ -160,6 +160,7 @@ class SplitterInterface:
         self._pause_movement = 0
         self._pseudo_current = 0
         
+    # override=True is done in run_menu bc we want to forcibly override times based on what the user inputted
     def reset (self, override = False):
         # added both those = 0 lines bc I'm 95% sure they're necessary, but it's also been over a year since I've touched this code
         # so just adding this note in case something breaks later on related to this 

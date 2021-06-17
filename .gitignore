@@ -2,6 +2,8 @@
 /__pycache__
 /old_versions
 /tests
+/pysplit_runs
+/pysplit_settings
 hierarchy_ideas.txt
 .project
 .pydevproject

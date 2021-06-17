@@ -32,6 +32,7 @@ from run_menu import Run_settings
 from hotkey_menu import Hotkey_settings
 from timer_menu import Timer_settings
 from color_menu import Color_settings
+from file_menu import File_settings
 
 # some comments about the structure of the "subclass" Menus 
 # from 2021, since I didn't really make high level comments last year
@@ -70,14 +71,14 @@ class MenuSystem:
         self._run_menu = Menu(self._menu_bar)
         # layout/timer settings relate more to the visual appearance, interactions with the timer; the UX/UI/user interactions side of things
         self._layout_menu = Menu(self._menu_bar)
+        self._file_menu = Menu(self._menu_bar)
         
         run_settings = Run_settings(self)
         hotkey_settings = Hotkey_settings(self)
         timer_settings = Timer_settings(self)
         color_settings = Color_settings(self)
+        file_settings = File_settings(self)
         #self.run_settings()
-    
-
         
         # edit title, description (category), add/remove splits, change times
         self._run_menu.add_command(label = 'Edit Run...', command = run_settings.run)
@@ -88,8 +89,17 @@ class MenuSystem:
         # edit timer precision, splits to display at once, previous splits to see on screen, show best/sum of best
         #    add an initial offset
         self._layout_menu.add_command(label = 'Timer Preferences...', command = timer_settings.timer)
-        # Colors, mostly (maybe fonts)
+        # self-descriptive
         self._layout_menu.add_command(label = 'Fonts and Colors...', command = color_settings.fonts_colors)
         
         self._menu_bar.add_cascade(label = 'Timer', menu = self._layout_menu)
         
+        self._file_menu.add_command(label = 'Open Run...', command = file_settings.open_run)
+        self._file_menu.add_command(label = 'Save Run As...', command = file_settings.save_run_as)
+        self._file_menu.add_command(label = 'Save Run', command = file_settings.save_run)
+        self._file_menu.add_separator()
+        self._file_menu.add_command(label = 'Open Timer Settings...', command = file_settings.open_timer)
+        self._file_menu.add_command(label = 'Save Timer Settings As...', command = file_settings.save_timer_as)
+        self._file_menu.add_command(label = 'Save Timer Settings', command = file_settings.save_timer)
+        
+        self._menu_bar.add_cascade(label = 'File', menu = self._file_menu)

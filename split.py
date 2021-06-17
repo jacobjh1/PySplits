@@ -14,7 +14,7 @@ class Split:
     Represents a split object with a name, best_time, and time; can access/mutate all instance variables
     '''
 
-    def __init__(self, name : str = '<default>', 
+    def __init__(self, name : str = '<No name>', 
                  last_time : 'float or int' = None, last_cumulative_time : 'float or int' = None,
                  best_time : 'float or int' = None):
         

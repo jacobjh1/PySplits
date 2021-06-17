@@ -27,10 +27,10 @@ class Binder ():
         self._bindings = dict()
         
         ################# for debugging purposes only:
-        self._bindings = {32: ('split', 'space'), 'split': 32, 'unsplit': 8320768, 8320768: ('unsplit', 'Up'), 
-                          8255233: ('skip_split', 'Down'), 'skip_split': 8255233, 
-                          91: ('pause', 'bracketleft'), 'pause': 91, 
-                          96: ('reset', 'quoteleft'), 'reset': 96}
+        # self._bindings = {32: ('split', 'space'), 'split': 32, 'unsplit': 8320768, 8320768: ('unsplit', 'Up'), 
+        #                  8255233: ('skip_split', 'Down'), 'skip_split': 8255233, 
+        #                  91: ('pause', 'bracketleft'), 'pause': 91, 
+        #                  96: ('reset', 'quoteleft'), 'reset': 96}
 
     
     def set_binding (self, action, menu, stringvars):

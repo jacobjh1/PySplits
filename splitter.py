@@ -25,7 +25,8 @@ class Splitter(Stopwatch):
     with a stopwatch and manages/processes/outputs splits
     '''
 
-    def __init__ (self,  size : int = 1, title : str = '', descr : str = '', precision : int = 1, offset : float = 0.0, visual_assembly = None):
+    def __init__ (self, visual_assembly = None, size : int = 1, title : str = 'Title', descr : str = 'Description', \
+                  precision : int = 1, offset : float = 0.0):
         '''
         Constructor:
             precision and offset are the same as for the Stopwatch constructor
@@ -55,8 +56,8 @@ class Splitter(Stopwatch):
         # creates a list of size Splits (with basic/default names)
         #    cannot legally be empty based on what I do in the GUI
         ##### For debugging, create a non-empty _splits list
-        self._splits = [Split('Split ' + str(i+1) if i != size - 1 else '.done') for i in range(size)]
-        self._splits[0] = Split('Split 1', 1.0, 1.0, 0.5) # last time, last c time, best time
+        self._splits = [Split('Split ' + str(i+1)) for i in range(size)]
+        # debug: self._splits[0] = Split('Split 1', 1.0, 1.0, 0.5) # last time, last c time, best time
         
         # index keeping track of which split is the current one; _current is None if there are no splits (which is no longer possible)
         self._current = 0 if size > 0 else None
@@ -190,7 +191,7 @@ class Splitter(Stopwatch):
         #############################################################################
         self._exist_bests = any(split.is_a_best() for split in self._splits)
         
-        # assume if they PB'ed, they wanna adjust their best splits as well
+        # assume if they PB'ed, they wanna adjust their best splits as well, i.e. pbed has precedence over exist_bests 
         if menu is not None and self._pbed:
             misc_menuing.confirm_pb(menu, self) # misc menuing will call finish_reset when the user closes the window
         elif menu is not None and self._exist_bests:
@@ -198,7 +199,7 @@ class Splitter(Stopwatch):
         else:
             self.finish_reset()
         
-    def finish_reset (self):
+    def finish_reset (self, save_fxn = None):
         for split in self._splits:
             if self._pbed:
                 split.we_pbed()
@@ -220,6 +221,11 @@ class Splitter(Stopwatch):
         self._exist_bests = False
             
         self._current = 0 if len(self._splits) > 0 else None
+        
+        # I'm not too confident about when to save... that being said, this is closest to just a regular old
+        # "I've hit reset already, and nothing's happening and now I want to save"
+        if save_fxn is not None:
+            save_fxn()
         
         if self._va is not None:
             self._va.update_all()
