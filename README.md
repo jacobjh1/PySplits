@@ -1,6 +1,6 @@
 # PySplits
-A speedrun timer for Macs that uses Python. Version 0.9. Currently has about 90% of features I want for a solid 1.0 version
-
+A speedrun timer for Macs that uses Python. Version 1.0
+ 
 tl;dr run visual_assembly.py to get a working version.
 
 Motivation:
@@ -19,6 +19,12 @@ But I kind of doubt that.
 
 On the Progress of This Version:
 
-In its "version 0.9" form, this program is usable by running visual_assembly.py. 
-That being said, there are 2 main features that I want to add before I call this project an adequate 1.0 version:
-  saving/loading splits from a file and adding the ability to customize various colors in the GUI
+In v1.0, this program is usable by running visual_assembly.py
+I have all the major features I want: color customization, saving/loading past runs and settings, robustness (as far as I can tell from my testing)
+
+I still have other quality of life things I want to add but was too lazy to include immediately, for example:
+	if there's a JSON syntax error, I surpressed the error message, and I should probably add a message box with it instead
+	I also surpressed file not found exceptions, so i also probably want to add a message box for that
+		and in general, a lot of problems just silently failed (not literally, bc I do call bell(), but that's not enough I think)
+	adding a reset counter/completed run counter 
+	separating scrolling and splitting as different keypresses
