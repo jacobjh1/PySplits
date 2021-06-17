@@ -1,5 +1,4 @@
 from tkinter import Toplevel, Text, Button, Label, N, S, E, W
-from file_menu import File_settings
 
 def confirm_pb (menu, timer):
     if menu._layer1: # kind of a redundant check bc if menu is not None, then layer1 needs to be false anyway, but whatever
@@ -25,13 +24,15 @@ def confirm_pb (menu, timer):
     def y ():
         destroy()
         # what a hack lol
-        timer.finish_reset(lambda : File_settings(menu).save_run(True))
+        timer.finish_reset(menu) # assume if you want to save pb, you also want to set bests; note that here, menu isn't None for sure
+        # timer.mid_reset(menu)
     
     def n ():
         timer._pbed = False
-        timer._exist_bests = False
+        # timer._exist_bests = False
         destroy()
-        timer.finish_reset()
+        # timer.finish_reset()
+        timer.mid_reset(menu) # if you don't want to save pb, that has no bearing on setting bests from that run
     
     window = Toplevel(menu._root)
     window.title('Congratulations!')
@@ -64,12 +65,15 @@ def confirm_best (menu, timer):
     
     def y ():
         destroy()
-        timer.finish_reset(lambda : File_settings(menu).save_run(True))
+        # timer.finish_reset(lambda : File_settings(menu).save_run(True))
+        timer.finish_reset(menu) # do want to save for sure
     
     def n ():
         timer._exist_bests = False
         destroy()
-        timer.finish_reset()
+        # timer.finish_reset(None if not timer._pbed else (lambda : File_settings(menu).save_run(True)))
+        # don't want to save, and it's logically impossible for pbed to be True but exist_bests to be False in this n() function
+        timer.finish_reset()  
     
     window = Toplevel(menu._root)
     window.title('Congratulations!')

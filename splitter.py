@@ -11,6 +11,7 @@ from stopwatch import Stopwatch
 from split import Split
 import helpers
 import misc_menuing
+from file_menu import File_settings
 
 class SplitOutOfBounds (Exception):
     '''
@@ -191,20 +192,36 @@ class Splitter(Stopwatch):
         #############################################################################
         self._exist_bests = any(split.is_a_best() for split in self._splits)
         
-        # assume if they PB'ed, they wanna adjust their best splits as well, i.e. pbed has precedence over exist_bests 
+        # don't assume if they PB'ed, they wanna adjust their best splits as well 
         if menu is not None and self._pbed:
-            misc_menuing.confirm_pb(menu, self) # misc menuing will call finish_reset when the user closes the window
-        elif menu is not None and self._exist_bests:
-            misc_menuing.confirm_best(menu, self)
+            # misc menuing will call mid_reset if the user chooses no
+            # misc menuing will skip to finish_reset if the user chooses yes
+            misc_menuing.confirm_pb(menu, self) 
+        # elif menu is not None and self._exist_bests:
+        #    misc_menuing.confirm_best(menu, self)
+        else:
+            # self.finish_reset()
+            self.mid_reset(menu)
+        
+    def mid_reset (self, menu):
+        if menu is not None and self._exist_bests:
+            # misc menuing will call finish_reset when the user closes the window
+            misc_menuing.confirm_best(menu, self) 
         else:
             self.finish_reset()
         
-    def finish_reset (self, save_fxn = None):
+    def finish_reset (self, menu_for_saving = None):
         for split in self._splits:
             if self._pbed:
                 split.we_pbed()
-            # doo bee doo bee verify (i.e. ask user if they wanna override stuff) not yet present
             # also assume if you wanna save a PB you also wanna save your best splits from that run duh
+            # things you can have: 
+            #    both are False
+            #    pbed is False, but exist_bests is True
+            #    pbed is True (and exist_bests is implicitly True)
+            # thing you can't have:
+            #    pbed is True but exist_bests is False (i.e. if there are bests but you don't overwrite), logically doesn't make sense to allow
+            #    (naturally you can pb without any best splits, that's fine and accounted for)
             elif self._exist_bests:
                 split.set_time_as_best()
             split.set_time(None)
@@ -224,8 +241,8 @@ class Splitter(Stopwatch):
         
         # I'm not too confident about when to save... that being said, this is closest to just a regular old
         # "I've hit reset already, and nothing's happening and now I want to save"
-        if save_fxn is not None:
-            save_fxn()
+        if menu_for_saving is not None:
+            File_settings(menu_for_saving).save_run(True)
         
         if self._va is not None:
             self._va.update_all()
