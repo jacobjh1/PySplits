@@ -32,16 +32,16 @@ def s_to_hms (s : 'float or int', precision):
     s = abs(s)
     
     h = int(s//3600)
-    m = int(s//60)
     s -= 3600*h
+    m = int(s//60)
     s -= 60*m
 
     # formatted strings round up, but it shouldn't matter because stopwatch already does the 
     #    correct rounding/flooring, so there should never be an instance where there's too much
     #    precision
-    s = ('0' if m and s < 10 else '') + ('%.' + str(precision) + 'f')%s
+    s = ('0' if (h or m) and s < 10 else '') + ('%.' + str(precision) + 'f')%s
     
-    m = ('0' if h else "") + (str(m) + ':' if m else '')
+    m = ('0' if h and m < 10 else '') + (str(m) + ':' if m or h else '')
     h = str(h) + ':' if h else ''
         
     return ("-" if negative else "") + h + m + s
